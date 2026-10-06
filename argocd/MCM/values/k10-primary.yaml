@@ -1,0 +1,20 @@
+---
+eula:
+  accept: true
+  company: Veeam
+  email: terraform@veeam.com
+multicluster:
+  enabled: true
+  primary:
+    create: true
+    name: aks-primary
+    ingressURL: http://k10-bjones.eastus2.cloudapp.azure.com/k10
+externalGateway:
+  create: true
+  annotations:
+    service.beta.kubernetes.io/azure-dns-label-name: k10-bjones
+auth:
+  basicAuth:
+    enabled: true
+    secretName: k10-basic-auth  # Supplied by clusters/<cluster>/externalsecret-basic-auth.yaml.
+  secureCookies: false

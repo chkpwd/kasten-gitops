@@ -1,0 +1,63 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k10
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: kasten
+  sources:
+    - repoURL: https://charts.kasten.io/
+      chart: k10
+      targetRevision: 9.0.6
+      helm:
+        releaseName: k10
+        valueFiles:
+          - $values/argocd/MCM/values/k10-primary.yaml
+    - repoURL: https://github.com/chkpwd/kasten-gitops.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kasten-io
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      namespace: kasten-io
+      name: kopia-tls-cert
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Secret
+      namespace: kasten-io
+      name: kopia-tls-key
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Secret
+      namespace: kasten-io
+      name: controllermanager-certs
+      jsonPointers:
+        - /data
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      name: k10-sidecar-injector
+      jqPathExpressions:
+        - .webhooks[].clientConfig.caBundle
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true  # Without this, selfHeal ignores the above.
+    retry:
+      limit: 5
+      backoff:
+        duration: 20s
+        factor: 2
+        maxDuration: 5m

@@ -1,7 +1,3 @@
-# template repository
+# GitOps Kasten Instances
 
-```bash
-gh repo create <new-repo-name> --template <owner>/<template-repo> --public && \
-gh repo clone <new-repo-name>
-```
-
+Managing Kasten with GitOps in mind..

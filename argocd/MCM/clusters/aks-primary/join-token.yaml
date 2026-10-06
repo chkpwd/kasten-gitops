@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mc-join-token
+  namespace: kasten-io-mc
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+  labels:
+    app.kubernetes.io/part-of: kasten-multicluster
+type: dist.kio.kasten.io/join-token

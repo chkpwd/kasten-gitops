@@ -2,4 +2,7 @@
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: [ "github>chkpwd/renovate" ],
   ignorePaths: [],
+  argocd: {
+    managerFilePatterns: [ "/^argocd/MCM/clusters/.+\\.yaml$/" ],
+  },
 }
