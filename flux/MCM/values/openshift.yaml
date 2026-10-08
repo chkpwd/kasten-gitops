@@ -1,0 +1,11 @@
+# OpenShift settings for Kasten.
+k10:
+  # Kasten needs its own SCCs on OpenShift.
+  scc:
+    create: true
+  # Show the dashboard through a Route with TLS. Leave route.host empty:
+  # OpenShift gives the Route a host, and kasten-mc reads it.
+  route:
+    enabled: true
+    tls:
+      enabled: true

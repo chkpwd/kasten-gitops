@@ -1,0 +1,5 @@
+apiVersion: v2
+name: eso-provider-aws
+description: ESO ClusterSecretStore for AWS Secrets Manager (writer on the primary, reader on the secondary).
+type: application
+version: 0.1.0

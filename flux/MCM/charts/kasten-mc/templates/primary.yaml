@@ -1,0 +1,88 @@
+{{- $h := .Values.handoff }}
+{{- if or $h.bootstrap.enabled $h.token.enabled }}
+{{- include "kasten-mc.requireRole" (list . "primary" "handoff.bootstrap and handoff.token") }}
+---
+# Kasten keeps the primary's multi-cluster state here, so Helm keeps it too.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kasten-io-mc
+  labels:
+    {{- include "kasten-mc.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+{{- end }}
+
+{{- if $h.bootstrap.enabled }}
+{{- $name := required "Set handoff.bootstrap.clusterName." $h.bootstrap.clusterName }}
+---
+# Makes this cluster the primary (Kasten docs, Multi-Cluster Getting Started,
+# kubectl method). Kasten puts this URL into every join token.
+apiVersion: dist.kio.kasten.io/v1alpha1
+kind: Bootstrap
+metadata:
+  name: bootstrap-primary
+  namespace: kasten-io-mc
+  labels:
+    {{- include "kasten-mc.labels" . | nindent 4 }}
+spec:
+  clusters:
+    {{ $name }}:
+      name: {{ $name }}
+      primary: true
+      k10:
+        namespace: {{ .Release.Namespace }}
+        releaseName: k10
+        ingress:
+          url: {{ include "kasten-mc.dashboardURL" (list . $h.bootstrap.ingressURL "handoff.bootstrap.ingressURL") | quote }}
+{{- end }}
+
+{{- if $h.token.enabled }}
+---
+# Kasten writes the token into this Secret. If you delete the Secret, Kasten
+# revokes the token.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "kasten-mc.tokenSecretName" . }}
+  namespace: kasten-io-mc
+  labels:
+    {{- include "kasten-mc.labels" . | nindent 4 }}
+type: dist.kio.kasten.io/join-token
+{{- end }}
+
+{{- if $h.push.enabled }}
+{{- if not $h.token.enabled }}
+{{- fail "handoff.push needs handoff.token.enabled." }}
+{{- end }}
+---
+# A PushSecret must be in the same namespace as its source Secret.
+# deletionPolicy None: the backend keeps the secret if this resource goes
+# away. Teardown removes it.
+apiVersion: external-secrets.io/v1alpha1
+kind: PushSecret
+metadata:
+  name: kasten-mc-join-token
+  namespace: kasten-io-mc
+  labels:
+    {{- include "kasten-mc.labels" . | nindent 4 }}
+spec:
+  refreshInterval: 5m
+  updatePolicy: Replace
+  deletionPolicy: None
+  secretStoreRefs:
+    - kind: ClusterSecretStore
+      name: kasten-mc-writer
+  selector:
+    secret:
+      name: {{ include "kasten-mc.tokenSecretName" . }}
+  data:
+    - match:
+        secretKey: token
+        remoteRef:
+          remoteKey: {{ required "Set handoff.remoteKey." $h.remoteKey }}
+      {{- with $h.push.metadata }}
+      metadata:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
