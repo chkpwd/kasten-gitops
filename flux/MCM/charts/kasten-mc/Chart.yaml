@@ -1,0 +1,21 @@
+apiVersion: v2
+name: kasten-mc
+description: >-
+  Installs Veeam Kasten and wires up a multi-cluster primary/secondary join,
+  handing the join token between clusters through External Secrets Operator.
+  GitOps-engine agnostic: every piece has its own switch, so an engine can
+  deploy it in ordered stages.
+type: application
+version: 0.1.0
+appVersion: "9.0.7"
+dependencies:
+  # Veeam Kasten, pinned. Values for it live under the `k10:` key.
+  - name: k10
+    version: 9.0.7
+    repository: https://charts.kasten.io/
+    condition: k10.enabled
+  # Secret backend (ESO ClusterSecretStore only). Enable at most one.
+  - name: eso-provider-aws
+    version: 0.1.0
+    repository: file://../eso-provider-aws
+    condition: eso-provider-aws.enabled

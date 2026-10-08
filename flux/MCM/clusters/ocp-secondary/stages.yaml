@@ -1,0 +1,49 @@
+# Secondary, stages 2 and 3. These are Kustomizations because only a
+# Kustomization can wait for the ExternalSecret.
+#   pull: reader store + ExternalSecret. Not Ready until the primary pushes
+#         a token. This is the only wait between the two clusters.
+#   join: mc-join-config, which starts the join.
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kasten-mc-pull
+  namespace: flux-system
+spec:
+  interval: 30m
+  # While the token is missing, this stays Ready=False and Flux checks again
+  # every 2 minutes.
+  retryInterval: 2m
+  timeout: 5m
+  path: ./flux/MCM/clusters/ocp-secondary/pull
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  healthChecks:
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      name: kasten-mc-join
+      namespace: kasten-io
+  healthCheckExprs:
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      current: status.conditions.filter(e, e.type == 'Ready').all(e, e.status == 'True')
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kasten-mc-join
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: kasten-mc-pull
+  interval: 30m
+  retryInterval: 2m
+  timeout: 5m
+  path: ./flux/MCM/clusters/ocp-secondary/join
+  prune: true
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system

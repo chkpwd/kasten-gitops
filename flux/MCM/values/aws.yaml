@@ -1,0 +1,16 @@
+# AWS Secrets Manager. The push and pull stages use this file and turn the
+# store on with eso-provider-aws.enabled: true.
+# Change region and remoteKey here to match your AWS setup
+# (see docs/aws.md).
+eso-provider-aws:
+  region: us-east-2
+
+handoff:
+  remoteKey: kasten-mc-join-token
+  push:
+    # Store the token as text (SecretString), not as binary.
+    metadata:
+      apiVersion: kubernetes.external-secrets.io/v1alpha1
+      kind: PushSecretMetadata
+      spec:
+        secretPushFormat: string

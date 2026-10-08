@@ -1,0 +1,27 @@
+# Example: points Flux at this repository for the primary cluster.
+# Install the Flux Operator first, then apply this file once:
+#   oc --context <PRIMARY_CONTEXT> apply -f fluxinstance.yaml
+apiVersion: fluxcd.controlplane.io/v1
+kind: FluxInstance
+metadata:
+  name: flux
+  namespace: flux-system
+spec:
+  distribution:
+    version: "2.9.x"
+    registry: ghcr.io/fluxcd
+  components:
+    - source-controller
+    - kustomize-controller
+    - helm-controller
+    - notification-controller
+  cluster:
+    type: openshift
+    # Lockdown off: the stages need cluster-wide rights for Kasten.
+    multitenant: false
+    networkPolicy: true
+  sync:
+    kind: GitRepository
+    url: https://github.com/chkpwd/kasten-gitops.git
+    ref: refs/heads/main
+    path: flux/MCM/clusters/ocp-primary

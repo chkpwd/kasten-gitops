@@ -1,0 +1,45 @@
+{{- $h := .Values.handoff }}
+{{- if $h.pull.enabled }}
+{{- include "kasten-mc.requireRole" (list . "secondary" "handoff.pull") }}
+---
+# Writes the token into mc-join. Not Ready until the primary pushes a token.
+# Kasten fixes the Secret name and key.
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: kasten-mc-join
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kasten-mc.labels" . | nindent 4 }}
+spec:
+  # Periodic: when the primary rotates the token, Kasten joins again.
+  refreshPolicy: Periodic
+  refreshInterval: 5m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: kasten-mc-reader
+  target:
+    name: mc-join
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  data:
+    - secretKey: token
+      remoteRef:
+        key: {{ required "Set handoff.remoteKey." $h.remoteKey }}
+{{- end }}
+
+{{- if $h.join.enabled }}
+{{- include "kasten-mc.requireRole" (list . "secondary" "handoff.join") }}
+---
+# This ConfigMap starts the join. Install it after mc-join exists.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mc-join-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kasten-mc.labels" . | nindent 4 }}
+data:
+  cluster-name: {{ required "Set handoff.join.clusterName." $h.join.clusterName | quote }}
+  cluster-ingress: {{ include "kasten-mc.dashboardURL" (list . $h.join.clusterIngress "handoff.join.clusterIngress") | quote }}
+{{- end }}

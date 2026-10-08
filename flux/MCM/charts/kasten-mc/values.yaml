@@ -1,0 +1,58 @@
+# Every part is off by default. Turn parts on per release to install the
+# chart in ordered stages. Example for a secondary:
+#   stage 1: k10.enabled
+#   stage 2: eso-provider-aws.enabled + handoff.pull.enabled
+#   stage 3: handoff.join.enabled
+
+global:
+  kastenMc:
+    # "primary" or "secondary". Required.
+    role: ""
+
+handoff:
+  # Name of the token in the secret backend. The push (primary) and the pull
+  # (secondary) both use it, so set it once for both clusters.
+  remoteKey: kasten-mc-join-token
+
+  # Primary: Kasten Bootstrap resource. It makes this cluster the primary.
+  bootstrap:
+    enabled: false
+    # Name of this cluster in the multi-cluster system. Required.
+    clusterName: ""
+    # Full dashboard URL, for example https://<host>/k10.
+    # Empty: the chart uses k10.route.host, or reads the Kasten Route.
+    ingressURL: ""
+
+  # Primary: join-token Secret. Kasten writes the token into it.
+  token:
+    enabled: false
+    # Increase by 1 to rotate the token. The old token is revoked.
+    generation: 1
+
+  # Primary: push the token to the secret backend.
+  push:
+    enabled: false
+    # Provider-specific PushSecretMetadata. The provider value file sets it.
+    metadata: {}
+
+  # Secondary: pull the token into the mc-join Secret.
+  pull:
+    enabled: false
+
+  # Secondary: mc-join-config. It starts the join.
+  join:
+    enabled: false
+    # Name of this cluster in the multi-cluster system. Required.
+    clusterName: ""
+    # Full dashboard URL of this cluster. Empty: found as for
+    # handoff.bootstrap.ingressURL.
+    clusterIngress: ""
+
+k10:
+  enabled: false
+  auth:
+    tokenAuth:
+      enabled: true
+
+eso-provider-aws:
+  enabled: false

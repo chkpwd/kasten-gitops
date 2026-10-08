@@ -1,0 +1,50 @@
+# Primary, stage 2: make this cluster the primary, create a join token, and
+# push the token to AWS Secrets Manager. Starts after stage 1 is Ready, so
+# the Kasten Route exists and the chart can read the primary URL from it.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kasten-mc-handoff
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: kasten-mc-kasten
+  interval: 30m
+  releaseName: kasten-mc-handoff
+  targetNamespace: kasten-io
+  # Store the Helm release in kasten-io, as the Helm CLI does. Flux then
+  # takes over a release that Helm already installed.
+  storageNamespace: kasten-io
+  # Helm waits until the PushSecret is Ready: Kasten wrote the token and ESO
+  # pushed it.
+  timeout: 10m
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  chart:
+    spec:
+      chart: ./flux/MCM/charts/kasten-mc
+      reconcileStrategy: Revision
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+      valuesFiles:
+        - flux/MCM/charts/kasten-mc/values.yaml
+        - flux/MCM/values/openshift.yaml
+        - flux/MCM/values/aws.yaml
+        - flux/MCM/values/ocp-primary.yaml
+  values:
+    eso-provider-aws:
+      enabled: true
+    handoff:
+      bootstrap:
+        enabled: true
+      token:
+        enabled: true
+        # Increase by 1 to rotate the join token.
+        generation: 1
+      push:
+        enabled: true

@@ -1,0 +1,36 @@
+# Secondary, stage 3: mc-join-config, which starts the join. The Kasten
+# Route exists by now, so the chart reads cluster-ingress from it.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kasten-mc-join
+  namespace: flux-system
+spec:
+  interval: 30m
+  releaseName: kasten-mc-join
+  targetNamespace: kasten-io
+  # Store the Helm release in kasten-io, as the Helm CLI does. Flux then
+  # takes over a release that Helm already installed.
+  storageNamespace: kasten-io
+  timeout: 5m
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  chart:
+    spec:
+      chart: ./flux/MCM/charts/kasten-mc
+      reconcileStrategy: Revision
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+      valuesFiles:
+        - flux/MCM/charts/kasten-mc/values.yaml
+        - flux/MCM/values/openshift.yaml
+        - flux/MCM/values/ocp-secondary.yaml
+  values:
+    handoff:
+      join:
+        enabled: true

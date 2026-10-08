@@ -1,0 +1,21 @@
+# Cluster values for the primary, shared by all of its stages.
+# Nothing here identifies an environment: the dashboard URL is read from the
+# Kasten Route at deploy time.
+global:
+  kastenMc:
+    role: primary
+
+handoff:
+  bootstrap:
+    clusterName: ocp-primary
+
+k10:
+  # Private or self-signed ingress certificates: create the ConfigMap first
+  # (docs/runbook.md), then uncomment.
+  cacertconfigmap:
+    name: kasten-mc-ca-bundle
+  # Accept the Kasten EULA at install time.
+  eula:
+    accept: true
+    company: kasten
+    email: test@example.com

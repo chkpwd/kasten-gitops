@@ -1,0 +1,7 @@
+# pull/ and join/ are not listed: the Kustomizations in stages.yaml apply
+# them in order.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - kasten.yaml
+  - stages.yaml

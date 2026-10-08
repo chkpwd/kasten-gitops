@@ -1,0 +1,39 @@
+# Primary, stage 1: Kasten.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kasten-mc-kasten
+  namespace: flux-system
+spec:
+  interval: 30m
+  # The release name sets the dashboard path (/k10) and the Route name.
+  releaseName: k10
+  targetNamespace: kasten-io
+  # Store the Helm release in kasten-io, as the Helm CLI does. Flux then
+  # takes over a release that Helm already installed.
+  storageNamespace: kasten-io
+  timeout: 15m
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  chart:
+    spec:
+      chart: ./flux/MCM/charts/kasten-mc
+      # Build the chart again for each Git commit. We do not bump the chart
+      # version for each template change.
+      reconcileStrategy: Revision
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+      # valuesFiles replaces the chart's values.yaml, so it comes first.
+      valuesFiles:
+        - flux/MCM/charts/kasten-mc/values.yaml
+        - flux/MCM/values/openshift.yaml
+        - flux/MCM/values/ocp-primary.yaml
+  values:
+    k10:
+      enabled: true

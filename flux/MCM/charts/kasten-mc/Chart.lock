@@ -1,0 +1,9 @@
+dependencies:
+- name: k10
+  repository: https://charts.kasten.io/
+  version: 9.0.7
+- name: eso-provider-aws
+  repository: file://../eso-provider-aws
+  version: 0.1.0
+digest: sha256:35895ed5ed0439b2ef16191921f5ca7e6e4a1fa3241f4054a4d09cc31b819896
+generated: "2026-10-08T17:42:09.126519+03:00"

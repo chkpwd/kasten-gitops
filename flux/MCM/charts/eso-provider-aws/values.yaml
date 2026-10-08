@@ -1,0 +1,9 @@
+enabled: false
+
+# AWS region of the Secrets Manager secret.
+region: us-east-2
+
+# Kubernetes Secret with the IAM user's access key (see docs/aws.md).
+credentials:
+  name: kasten-mc-aws-credentials
+  namespace: external-secrets

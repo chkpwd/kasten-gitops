@@ -1,0 +1,40 @@
+# Secondary, stage 2: reader store and the ExternalSecret that writes
+# mc-join. Helm does not wait: the token can be missing for a long time, and
+# a Helm timeout would roll the release back. The kasten-mc-pull
+# Kustomization waits instead.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kasten-mc-pull
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: kasten-mc-kasten
+  interval: 30m
+  releaseName: kasten-mc-pull
+  targetNamespace: kasten-io
+  # Store the Helm release in kasten-io, as the Helm CLI does. Flux then
+  # takes over a release that Helm already installed.
+  storageNamespace: kasten-io
+  install:
+    disableWait: true
+  upgrade:
+    disableWait: true
+  chart:
+    spec:
+      chart: ./flux/MCM/charts/kasten-mc
+      reconcileStrategy: Revision
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+      valuesFiles:
+        - flux/MCM/charts/kasten-mc/values.yaml
+        - flux/MCM/values/openshift.yaml
+        - flux/MCM/values/aws.yaml
+        - flux/MCM/values/ocp-secondary.yaml
+  values:
+    eso-provider-aws:
+      enabled: true
+    handoff:
+      pull:
+        enabled: true
