@@ -24,3 +24,10 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Helm dependency archives (rebuilt from Chart.lock)
+flux/MCM/charts/*/charts/*.tgz
+
+# Local, environment-specific files: never commit
+*.local.yaml
+*.local.yml
