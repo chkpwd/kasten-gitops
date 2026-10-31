@@ -11,7 +11,7 @@ appVersion: "9.0.7"
 dependencies:
   # Veeam Kasten, pinned. Values for it live under the `k10:` key.
   - name: k10
-    version: 9.0.7
+    version: 9.0.10
     repository: https://charts.kasten.io/
     condition: k10.enabled
   # Secret backend (ESO ClusterSecretStore only). Enable at most one.
