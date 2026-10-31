@@ -13,7 +13,7 @@ spec:
   sources:
     - repoURL: https://charts.kasten.io/
       chart: k10
-      targetRevision: 9.0.7
+      targetRevision: 9.0.10
       helm:
         releaseName: k10
         valueFiles:
